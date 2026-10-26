@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import cv2
-
+import numpy as np
 
 image_path = Path(
     "samples/day02/challenge.jpg"
@@ -64,11 +64,70 @@ for clip_limit in [1.0, 2.0, 3.0]:
         mask
     )
 
-# 임시 최종 선택값: 비교 후 수정
-result = cv2.createCLAHE(
-    clipLimit=2.0,
-    tileGridSize=(8, 8)
-).apply(gray)
+
+# --------------------------------------------------
+# 추가 실험 1: Gamma Correction
+# --------------------------------------------------
+
+gamma_results = {}
+
+for gamma in [1.2, 1.5]:
+
+    inv_gamma = 1.0 / gamma
+
+    table = np.array([
+        ((i / 255.0) ** inv_gamma) * 255
+        for i in range(256)
+    ], dtype=np.uint8)
+
+    gamma_result = cv2.LUT(gray, table)
+    gamma_results[gamma] = gamma_result
+
+    cv2.imwrite(
+        str(output_dir / f"gamma_{gamma}.jpg"),
+        gamma_result
+    )
+
+    _, mask = cv2.threshold(
+        gamma_result, 0, 255,
+        cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
+
+    cv2.imwrite(
+        str(output_dir / f"otsu_gamma_{gamma}.jpg"),
+        mask
+    )
+
+
+# --------------------------------------------------
+# 추가 실험 2: Gaussian Blur
+# --------------------------------------------------
+
+gaussian_result = cv2.GaussianBlur(
+    gray, (5, 5), 0
+)
+
+cv2.imwrite(
+    str(output_dir / "gaussian_5.jpg"),
+    gaussian_result
+)
+
+_, mask = cv2.threshold(
+    gaussian_result, 0, 255,
+    cv2.THRESH_BINARY + cv2.THRESH_OTSU
+)
+
+cv2.imwrite(
+    str(output_dir / "otsu_gaussian_5.jpg"),
+    mask
+)
+
+# 최종 판단: 전처리 미사용
+# 이유: 실험한 전처리 모두 병뚜껑과 배경의
+# Otsu 분리를 충분히 개선하지 못함
+# Gaussian 5x5는 3일차 추가 확인 후보
+
+result = image.copy()
 
 
 

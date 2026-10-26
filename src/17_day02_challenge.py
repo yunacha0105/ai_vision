@@ -37,7 +37,39 @@ if image is None:
 # --------------------------------------------------
 
 
-result = image.copy()
+
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# CLAHE 파라미터 비교
+for clip_limit in [1.0, 2.0, 3.0]:
+    clahe = cv2.createCLAHE(
+        clipLimit=clip_limit,
+        tileGridSize=(8, 8)
+    )
+
+    trial = clahe.apply(gray)
+
+    cv2.imwrite(
+        str(output_dir / f"clahe_{clip_limit}.jpg"),
+        trial
+    )
+
+    _, mask = cv2.threshold(
+        trial, 0, 255,
+        cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
+
+    cv2.imwrite(
+        str(output_dir / f"otsu_clahe_{clip_limit}.jpg"),
+        mask
+    )
+
+# 임시 최종 선택값: 비교 후 수정
+result = cv2.createCLAHE(
+    clipLimit=2.0,
+    tileGridSize=(8, 8)
+).apply(gray)
+
 
 
 # --------------------------------------------------

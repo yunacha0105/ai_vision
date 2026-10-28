@@ -8,7 +8,7 @@ import cv2
 
 stream_url = "http://192.168.40.114:4747/video"
 
-output_dir = Path("outputs/live_roi")
+output_dir = Path("outputs/live_roi03-1")
 output_dir.mkdir(parents=True, exist_ok=True)
 
 

@@ -6,28 +6,28 @@ Images: 6
 
 ## OCR Exact Accuracy
 
-0.8333
+1.0000
 
-OCR Correct: 5 / 6
+OCR Correct: 6 / 6
 
 ## Inspection Accuracy
 
-0.8333
+1.0000
 
-Inspection Correct: 5 / 6
+Inspection Correct: 6 / 6
 
 ## Format
 
-Format OK: 5 / 6
+Format OK: 6 / 6
 
 ## Expected Match
 
-Expected Match: 3 / 6
+Expected Match: 4 / 6
 
 ## OCR Failures
 
-- 0637145699424_side.png
+- 없음
 
 ## Inspection Failures
 
-- 0637145699424_side.png
+- 없음

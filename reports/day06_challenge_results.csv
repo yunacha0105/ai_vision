@@ -1,0 +1,6 @@
+﻿condition,deskew,expected_sn,raw_text,final_text,format_ok,expected_match,ocr_exact,status,reasons
+low_contrast,no,0637145699424,'063714569944\n',063714569944,False,False,False,NG,NG_FORMAT|NG_EXPECTED_MISMATCH
+blur,no,0637145699424,'',,False,False,False,NG,NG_OCR_EMPTY|NG_FORMAT|NG_EXPECTED_MISMATCH
+tilt,no,0637145699424,'',,False,False,False,NG,NG_OCR_EMPTY|NG_FORMAT|NG_EXPECTED_MISMATCH
+tilt,yes,0637145699424,'44714\n',44714,False,False,False,NG,NG_FORMAT|NG_EXPECTED_MISMATCH
+glare,no,0637145699424,'4\n',4,False,False,False,NG,NG_FORMAT|NG_EXPECTED_MISMATCH

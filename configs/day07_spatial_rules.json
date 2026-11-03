@@ -1,0 +1,7 @@
+{
+  "version": "day07-spatial-v1.1-experimental",
+  "score_method": "max_spatial_distance",
+  "selected_percentile": 95,
+  "threshold": 0.7158933699131007,
+  "reference_path": "artifacts/day07/normal_reference.npz"
+}

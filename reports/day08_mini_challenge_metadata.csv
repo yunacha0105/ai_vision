@@ -1,0 +1,6 @@
+﻿synthetic_file,source_normal,source_defect,defect_type,seed,x,y,width,height,rotation,scale
+synthetic_000.png,060.png,006.png,contamination,42,242,142,354,357,-5.1,0.897
+synthetic_001.png,194.png,006.png,contamination,42,236,201,330,333,-9.36,0.836
+synthetic_002.png,089.png,006.png,contamination,42,314,369,325,328,4.32,0.824
+synthetic_003.png,160.png,006.png,contamination,42,226,478,307,311,-4.44,0.78
+synthetic_004.png,089.png,008.png,contamination,42,322,262,341,297,-6.89,0.736

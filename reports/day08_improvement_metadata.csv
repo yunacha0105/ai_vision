@@ -1,0 +1,6 @@
+﻿image,source_normal,source_defect,baseline_scale,improved_scale,rotation,x,y,width,height,blur_kernel
+synthetic_000.png,060.png,006.png,0.897,0.3588,-5.1,349,249,141,143,9
+synthetic_001.png,194.png,006.png,0.836,0.3344,-9.36,335,301,132,133,9
+synthetic_002.png,089.png,006.png,0.824,0.3296,4.32,411,468,130,131,9
+synthetic_003.png,160.png,006.png,0.78,0.312,-4.44,318,571,123,124,9
+synthetic_004.png,089.png,008.png,0.736,0.2944,-6.89,424,351,136,118,9

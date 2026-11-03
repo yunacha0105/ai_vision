@@ -182,27 +182,27 @@ Calibration에서 정한 기준이 Test 사진에도 그대로 적용되는지 �
 
 ## Day 07 — ResNet18 기반 Anomaly Detection
 
-MVTec AD bottle 데이터셋을 이용해 정상 이미지의 특징을 학습 기준으로 삼고, 기준과 차이가 큰 이미지를 이상으로 판정했다. ResNet18의 layer3에서 특징을 추출했으며, 정상 Train 167장으로 Normal Reference를 만들었다. 정상 Validation 42장의 Score에서 95 Percentile을 Threshold로 정하고 Test 83장을 검사했다.
+MVTec AD bottle 데이터셋으로 정상 이미지의 특징을 기준 삼아 이상을 검출했다. 사전학습된 ResNet18의 layer3에서 특징을 추출하고, 정상 Train 167장의 평균으로 Normal Reference를 만들었다. 정상 Validation 42장의 Score에서 95 Percentile Threshold를 정해 Test 83장을 평가했다.
 
-Baseline 결과는 Accuracy 92.77%, Precision 96.72%, Recall 93.65%였다. 큰 파손과 오염은 모두 검출했지만, 작은 파손 22장 중 4장을 정상으로 잘못 판정했다.
+Baseline은 Accuracy 92.77%, Precision 96.72%, Recall 93.65%였다. 큰 파손과 오염은 모두 검출했지만 작은 파손 22장 중 4장을 정상으로 판정했다.
 
-### Mini Challenge
+### Mini Challenge — 촬영 조건 변화와 보정 시도
 
-정상 이미지 `001.png`에 Dark, Blur, Rotation을 적용하고 기존 Threshold 0.067458로 검사했다.
+정상 Test 이미지 `001.png`에 Dark 0.75, Blur 7, Rotation 10°를 적용하고 기존 Global Threshold 0.067458로 검사했다.
 
-| 조건 | Score | 결과 |
+| 조건 | Global Score | 결과 |
 |---|---:|---|
-| Dark (0.75) | 0.089038 | FP |
-| Blur (7) | 0.050097 | PASS |
-| Rotation (10°) | 0.046322 | PASS |
+| Dark | 0.089038 | FP |
+| Blur | 0.050097 | PASS |
+| Rotation | 0.046322 | PASS |
 
-Blur와 Rotation에서는 정상 판정을 유지했지만, Dark에서는 밝기 변화만으로 FP가 발생했다. 조명 조건이 검사 결과에 영향을 줄 수 있다는 점을 확인했다.
+Dark에서만 FP가 발생했다. 이후 Spatial과 Global + Spatial OR 결합으로 재검사했지만, Combined에서도 Dark는 FP였다. Global이 이상으로 판정하면 Spatial이 정상으로 판정해도 OR 결합에서는 이상으로 처리되기 때문이다.
 
-### 추가 개선 실험
+Gamma 0.7과 CLAHE를 각각 적용해 Global Score를 다시 측정했다. 원본에서는 FP가 1/3건이었지만 두 보정 방식에서는 각각 3/3건으로 늘었다. 보정만으로 Dark FP를 해결하지 못했고, 정상 기준을 유지한 상태에서 입력 이미지만 바꾸면 점수가 오히려 증가할 수 있음을 확인했다.
 
-Baseline에서 작은 파손 4장을 놓친 문제를 확인한 뒤, 전체 Feature Vector를 비교하는 Global 방식 외에 위치별 Feature Map의 최대 차이를 이용한 Spatial 방식을 실험했다.
+### 추가 개선 — 작은 파손 미검출
 
-Spatial 방식에서는 작은 파손 22장을 모두 검출했지만, 오염 6장을 놓치면서 전체 성능이 떨어졌다. 이후 Global과 Spatial 중 하나라도 Anomaly로 판정하면 최종 Anomaly로 처리하는 OR 결합 방식을 적용했다.
+Global 방식에서 놓친 작은 파손 4장을 줄이기 위해 위치별 Feature Map의 최대 차이를 사용하는 Spatial 방식을 실험했다. Spatial은 작은 파손 22장을 모두 검출했지만 오염 6장을 놓쳤다. 그래서 두 방식 중 하나라도 Anomaly면 불량으로 판단하는 OR 결합을 적용했다.
 
 | 지표 | Global | Spatial | Combined |
 |---|---:|---:|---:|
@@ -212,14 +212,13 @@ Spatial 방식에서는 작은 파손 22장을 모두 검출했지만, 오염 6�
 | FP | 2 | 1 | 2 |
 | FN | 4 | 6 | 0 |
 
-Combined 방식에서는 결함 이미지 63장을 모두 검출했고 정상 오탐은 기존과 동일한 2건이었다. 다만 이미 확인한 Test 데이터를 이용한 후속 실험이므로, 별도의 데이터에서 같은 결과가 나오는지는 추가 검증이 필요하다.
+Combined는 기존 Test에서 결함 63장을 모두 검출했고 FP는 2건으로 유지됐다. 다만 Baseline Test 실패를 확인한 뒤 만든 탐색적 결합이므로, 독립적인 미사용 데이터로 재검증해야 한다. 조명 변화 FP도 아직 해결되지 않았다.
 
 ### 실행 코드 및 결과 파일
 
 - 기본 실습: `src/50_day07_check_anomaly_env.py` ~ `src/61_day07_mini_challenge.py`, `src/day07_anomaly_core.py`
-- 개선 코드: `src/day07_improve_spatial_score.py`, `src/day07_improve_combined.py`
-- Baseline 결과: `reports/day07_anomaly_scores.csv`, `reports/day07_test_metrics.md`
-- Challenge: `reports/day07_challenge_results.csv`, `reports/day07_mini_challenge.md`
-- 개선 결과: `reports/day07_spatial_comparison.csv`, `reports/day07_combined_comparison.csv`
-- 개선 분석: `reports/day07_improvement.md`
+- 추가 실험: `src/day07_improve_spatial_score.py`, `src/day07_improve_combined.py`, `src/day07_check_mini_combined.py`, `src/day07_improve_lighting.py`
+- 기본 결과: `reports/day07_anomaly_scores.csv`, `reports/day07_test_metrics.md`, `reports/day07_challenge_results.csv`
+- Mini Challenge 및 조명 비교: `reports/day07_mini_challenge.md`, `reports/day07_mini_combined_check.csv`, `reports/day07_lighting_experiment.csv`
+- 개선 비교: `reports/day07_spatial_comparison.csv`, `reports/day07_combined_comparison.csv`, `reports/day07_improvement.md`
 - 판정 Rule: `configs/day07_anomaly_rules.json`, `configs/day07_spatial_rules.json`

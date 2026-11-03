@@ -1,0 +1,4 @@
+﻿image,global_score,global_result,spatial_score,spatial_result,combined_result
+mini_blur.png,0.050097,PASS,0.405296,PASS,PASS
+mini_dark.png,0.089038,FP,0.413865,PASS,FP
+mini_rotation.png,0.046322,PASS,0.462891,PASS,PASS

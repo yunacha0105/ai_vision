@@ -1,0 +1,10 @@
+﻿image,method,score,threshold,result
+mini_blur.png,Original,0.050097,0.067458,PASS
+mini_blur.png,Gamma_0.7,0.091344,0.067458,FP
+mini_blur.png,CLAHE,0.120596,0.067458,FP
+mini_dark.png,Original,0.089038,0.067458,FP
+mini_dark.png,Gamma_0.7,0.099575,0.067458,FP
+mini_dark.png,CLAHE,0.144286,0.067458,FP
+mini_rotation.png,Original,0.046322,0.067458,PASS
+mini_rotation.png,Gamma_0.7,0.095089,0.067458,FP
+mini_rotation.png,CLAHE,0.120981,0.067458,FP

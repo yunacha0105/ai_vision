@@ -179,3 +179,47 @@ Calibration에서 정한 기준이 Test 사진에도 그대로 적용되는지 �
 - 환경 변화 테스트: `reports/day06_challenge_results.csv`, `reports/day06_failure_analysis.md`
 - Mini Challenge 결과: `reports/day06_mini_challenge_results.csv`, `reports/day06_mini_preprocess_compare.csv`, `reports/day06_mini_regex_results.csv`, `reports/day06_mini_challenge.md`
 - OCR 설정 및 정답표: `configs/day06_ocr_rules.json`, `configs/day06_labels.csv`
+
+## Day 07 — ResNet18 기반 Anomaly Detection
+
+MVTec AD bottle 데이터셋을 이용해 정상 이미지의 특징을 학습 기준으로 삼고, 기준과 차이가 큰 이미지를 이상으로 판정했다. ResNet18의 layer3에서 특징을 추출했으며, 정상 Train 167장으로 Normal Reference를 만들었다. 정상 Validation 42장의 Score에서 95 Percentile을 Threshold로 정하고 Test 83장을 검사했다.
+
+Baseline 결과는 Accuracy 92.77%, Precision 96.72%, Recall 93.65%였다. 큰 파손과 오염은 모두 검출했지만, 작은 파손 22장 중 4장을 정상으로 잘못 판정했다.
+
+### Mini Challenge
+
+정상 이미지 `001.png`에 Dark, Blur, Rotation을 적용하고 기존 Threshold 0.067458로 검사했다.
+
+| 조건 | Score | 결과 |
+|---|---:|---|
+| Dark (0.75) | 0.089038 | FP |
+| Blur (7) | 0.050097 | PASS |
+| Rotation (10°) | 0.046322 | PASS |
+
+Blur와 Rotation에서는 정상 판정을 유지했지만, Dark에서는 밝기 변화만으로 FP가 발생했다. 조명 조건이 검사 결과에 영향을 줄 수 있다는 점을 확인했다.
+
+### 추가 개선 실험
+
+Baseline에서 작은 파손 4장을 놓친 문제를 확인한 뒤, 전체 Feature Vector를 비교하는 Global 방식 외에 위치별 Feature Map의 최대 차이를 이용한 Spatial 방식을 실험했다.
+
+Spatial 방식에서는 작은 파손 22장을 모두 검출했지만, 오염 6장을 놓치면서 전체 성능이 떨어졌다. 이후 Global과 Spatial 중 하나라도 Anomaly로 판정하면 최종 Anomaly로 처리하는 OR 결합 방식을 적용했다.
+
+| 지표 | Global | Spatial | Combined |
+|---|---:|---:|---:|
+| Accuracy | 92.77% | 91.57% | 97.59% |
+| Precision | 96.72% | 98.28% | 96.92% |
+| Recall | 93.65% | 90.48% | 100.00% |
+| FP | 2 | 1 | 2 |
+| FN | 4 | 6 | 0 |
+
+Combined 방식에서는 결함 이미지 63장을 모두 검출했고 정상 오탐은 기존과 동일한 2건이었다. 다만 이미 확인한 Test 데이터를 이용한 후속 실험이므로, 별도의 데이터에서 같은 결과가 나오는지는 추가 검증이 필요하다.
+
+### 실행 코드 및 결과 파일
+
+- 기본 실습: `src/50_day07_check_anomaly_env.py` ~ `src/61_day07_mini_challenge.py`, `src/day07_anomaly_core.py`
+- 개선 코드: `src/day07_improve_spatial_score.py`, `src/day07_improve_combined.py`
+- Baseline 결과: `reports/day07_anomaly_scores.csv`, `reports/day07_test_metrics.md`
+- Challenge: `reports/day07_challenge_results.csv`, `reports/day07_mini_challenge.md`
+- 개선 결과: `reports/day07_spatial_comparison.csv`, `reports/day07_combined_comparison.csv`
+- 개선 분석: `reports/day07_improvement.md`
+- 판정 Rule: `configs/day07_anomaly_rules.json`, `configs/day07_spatial_rules.json`

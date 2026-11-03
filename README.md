@@ -222,3 +222,82 @@ Combined는 기존 Test에서 결함 63장을 모두 검출했고 FP는 2건으�
 - Mini Challenge 및 조명 비교: `reports/day07_mini_challenge.md`, `reports/day07_mini_combined_check.csv`, `reports/day07_lighting_experiment.csv`
 - 개선 비교: `reports/day07_spatial_comparison.csv`, `reports/day07_combined_comparison.csv`, `reports/day07_improvement.md`
 - 판정 Rule: `configs/day07_anomaly_rules.json`, `configs/day07_spatial_rules.json`
+
+
+## Day 08 — One-shot / Few-shot 및 Synthetic Defect
+
+8일차에서는 MVTec AD bottle 데이터셋을 이용해 적은 이미지로 정상·불량을 판정하는 One-shot과 Few-shot을 비교하고, Cut-Paste 방식으로 합성 불량 데이터를 생성했다.
+
+기존 ResNet18 사전학습 모델을 특징 추출기로 사용했으며, 새로운 모델을 학습하지 않고 Cosine Similarity를 이용해 판정했다.
+
+### One-shot / Few-shot 비교
+
+One-shot에서는 정상 Reference 1장과 정상 Calibration 20장으로 Similarity Threshold를 정했다. Few-shot에서는 정상 Support 5장과 작은 파손 Support 5장으로 각각 Prototype을 생성했다.
+
+두 방식 모두 동일한 Common Query 20장(정상 10장, 작은 파손 10장)을 검사했다.
+
+| 지표 | One-shot | Few-shot |
+|---|---:|---:|
+| Accuracy | 85.00% | 90.00% |
+| Precision | 88.89% | 100.00% |
+| Recall | 80.00% | 80.00% |
+| FP | 1 | 0 |
+| FN | 2 | 2 |
+
+Few-shot에서는 One-shot 대비 FP가 1건 감소했지만, FN은 2건으로 동일했다. 이번 데이터에서는 Few-shot의 Accuracy가 더 높았으나 작은 파손 미검출 문제는 남아 있었다.
+
+### Synthetic Defect 생성
+
+Ground Truth Mask로 실제 `broken_small` 결함 Patch를 추출하고 정상 병 이미지에 Cut-Paste 방식으로 합성했다.
+
+정상 이미지 10장과 결함 원본 2장을 이용해 합성 이미지 20장을 생성했으며, 결함 위치·크기·회전 각도·사용한 원본 등을 Metadata CSV에 기록했다.
+
+합성 이미지를 생성할 수 있더라도 실제 결함처럼 자연스러운지는 별도 확인이 필요하다.
+
+### Mini Challenge — Support 수 비교
+
+정상·불량 Support 수를 각각 1장, 3장, 5장으로 바꾸고 동일한 Common Query 20장에서 성능을 비교했다.
+
+| Support 수 | Accuracy | Precision | Recall | FP | FN |
+|---|---:|---:|---:|---:|---:|
+| 1장씩 | 70.00% | 83.33% | 50.00% | 1 | 5 |
+| 3장씩 | 80.00% | 100.00% | 60.00% | 0 | 4 |
+| 5장씩 | 90.00% | 100.00% | 80.00% | 0 | 2 |
+
+이번 실험에서는 Support 수를 늘릴수록 Accuracy와 Recall이 향상됐다. 하지만 하나의 Support 이미지 조합으로 얻은 결과이므로 항상 같은 경향이 나타난다고 볼 수는 없다.
+
+### Mini Challenge — Contamination 결함 합성
+
+기존 `broken_small` 대신 `contamination` 결함을 이용해 Cut-Paste 합성 이미지 5장을 생성했다.
+
+Scale 0.6~1.0, Rotation -10°~+10°, Seed 42를 사용했다.
+
+생성된 이미지에서는 갈색 원형 결함이 지나치게 크거나 병 내부 경계와 겹치는 문제가 나타났다. 이미지 생성 자체는 완료했지만, 시각적 품질에는 한계가 있었다.
+
+데이터 상황별 방법 선택에서는 정상 데이터의 확보량과 불량 예제의 유무에 따라 Anomaly Detection, One-shot, Few-shot, Defect Generation을 구분해 정리했다.
+
+### 추가 Improvement — Cut-Paste 품질 개선
+
+Contamination 합성 결과의 부자연스러운 크기와 위치를 개선하기 위해 다음 조건을 적용했다.
+
+- 결함 크기를 기존 합성 Scale의 40%로 축소
+- 합성 중심 위치를 이미지 중앙 영역으로 제한
+- 경계 Gaussian Blur를 3×3에서 9×9로 변경
+
+기존 이미지와 개선 이미지 5쌍을 비교한 결과, 결함이 지나치게 넓은 면적을 차지하거나 병 내부 경계와 겹치는 문제가 일부 완화됐다.
+
+그러나 갈색 원형 구조는 여전히 남아 있었다. 이번 개선은 합성 이미지의 시각적 품질 비교이며, 실제 모델 성능 향상 여부는 검증하지 않았다.
+
+### 실행 코드 및 결과 파일
+
+- 기본 실습: `src/62_day08_check_lowdata_env.py` ~ `src/69_day08_make_cutpaste_defects.py`
+- 공통 함수: `src/day08_feature_core.py`, `src/day08_cutpaste_core.py`
+- Mini Challenge: `src/day08_support_count_challenge.py`, `src/day08_mini_challenge.py`
+- Improvement: `src/day08_improve_cutpaste.py`
+- 데이터 구성: `reports/day08_dataset_summary.md`
+- 기본 성능: `reports/day08_one_shot_results.csv`, `reports/day08_fewshot_results.csv`, `reports/day08_method_comparison.csv`
+- Support 수 비교: `reports/day08_support_count_challenge.csv`, `reports/day08_support_count_details.csv`
+- 결함 합성: `reports/day08_defect_metadata.csv`, `reports/day08_mini_challenge_metadata.csv`
+- 개선 조건: `reports/day08_improvement_metadata.csv`
+- 분석 보고서: `reports/day08_mini_challenge.md`, `reports/day08_improvement.md`
+- 판정 설정: `configs/day08_one_shot_rules.json`, `configs/day08_fewshot_config.json`
